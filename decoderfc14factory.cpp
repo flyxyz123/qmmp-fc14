@@ -2,8 +2,6 @@
 #include "decoder_fc14.h"
 #include "fc14helper.h"
 
-#include <QMessageBox>
-
 bool DecoderFC14Factory::canDecode(QIODevice *) const
 {
     return false;
@@ -79,9 +77,6 @@ void DecoderFC14Factory::showSettings(QWidget *parent)
 
 void DecoderFC14Factory::showAbout(QWidget *parent)
 {
-    QMessageBox::about (parent, tr("About FC14 Reader Plugin"),
-                        tr("Qmmp FC14 Reader Plugin")+"\n"+
-                        tr("Written by: Greedysky <greedysky@163.com>"));
 }
 
 QString DecoderFC14Factory::translation() const
