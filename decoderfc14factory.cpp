@@ -4,20 +4,28 @@
 
 #include <QtWidgets/QMessageBox>
 
-bool DecoderFC14Factory::canDecode(QIODevice *) const
+bool DecoderFC14Factory::canDecode(QIODevice *input) const
 {
-    return false;
+    QFile *file = static_cast<QFile*>(input);
+    if(!file)
+    {
+        return false;
+    }
+
+    FC14Helper helper(file->fileName());
+    return helper.initialize();
 }
 
 DecoderProperties DecoderFC14Factory::properties() const
 {
     DecoderProperties properties;
-    properties.name = "FC14 Plugin";
+    properties.name = tr("FC14 Plugin");
+    properties.shortName = "fc14";
     properties.filters << "*.fc" << "*.fc13" << "*.fc14" << "*.smod";
     properties.description = "Future Composer Audio File";
-    properties.shortName = "fc14";
     properties.protocols << "file";
     properties.noInput = true;
+    properties.hasAbout = true;
     return properties;
 }
 
@@ -30,7 +38,6 @@ Decoder *DecoderFC14Factory::create(const QString &path, QIODevice *input)
 QList<TrackInfo*> DecoderFC14Factory::createPlayList(const QString &path, TrackInfo::Parts parts, QStringList *)
 {
     TrackInfo *info = new TrackInfo(path);
-
     if(parts == TrackInfo::Parts())
     {
         return QList<TrackInfo*>() << info;
@@ -45,11 +52,7 @@ QList<TrackInfo*> DecoderFC14Factory::createPlayList(const QString &path, TrackI
 
     if(parts & TrackInfo::MetaData)
     {
-        const QMap<Qmmp::MetaData, QString> metaData(helper.readMetaData());
-        for(auto itr = metaData.begin(); itr != metaData.end(); ++itr)
-        {
-            info->setValue(itr.key(), itr.value());
-        }
+        info->setValue(Qmmp::COMMENT, helper.comment());
     }
 
     if(parts & TrackInfo::Properties)
@@ -57,11 +60,10 @@ QList<TrackInfo*> DecoderFC14Factory::createPlayList(const QString &path, TrackI
         info->setValue(Qmmp::BITRATE, helper.bitrate());
         info->setValue(Qmmp::SAMPLERATE, helper.sampleRate());
         info->setValue(Qmmp::CHANNELS, helper.channels());
-        info->setValue(Qmmp::BITS_PER_SAMPLE, helper.bitsPerSample());
-        info->setValue(Qmmp::FORMAT_NAME, "FC14");
+        info->setValue(Qmmp::BITS_PER_SAMPLE, helper.depth());
+        info->setValue(Qmmp::FORMAT_NAME, "Future Composer");
         info->setDuration(helper.totalTime());
     }
-
     return QList<TrackInfo*>() << info;
 }
 
@@ -79,9 +81,9 @@ void DecoderFC14Factory::showSettings(QWidget *parent)
 
 void DecoderFC14Factory::showAbout(QWidget *parent)
 {
-    QMessageBox::about (parent, tr("About FC14 Reader Plugin"),
-                        tr("Qmmp FC14 Reader Plugin")+"\n"+
-                        tr("Written by: Greedysky <greedysky@163.com>"));
+    QMessageBox::about(parent, tr("About FC14 Reader Plugin"),
+                       tr("Qmmp FC14 Reader Plugin") + "\n" +
+                       tr("Written by: Greedysky <greedysky@163.com>"));
 }
 
 QString DecoderFC14Factory::translation() const

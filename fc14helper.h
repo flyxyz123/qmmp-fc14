@@ -1,6 +1,6 @@
-/* =================================================
+/***************************************************************************
  * This file is part of the TTK qmmp plugin project
- * Copyright (C) 2015 - 2021 Greedysky Studio
+ * Copyright (C) 2015 - 2022 Greedysky Studio
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,15 @@
 
  * You should have received a copy of the GNU General Public License along
  * with this program; If not, see <http://www.gnu.org/licenses/>.
- ================================================= */
+ ***************************************************************************/
 
 #ifndef FC14HELPER_H
 #define FC14HELPER_H
 
-extern "C" {
-#include <libfc14/fc14audiodecoder.h>
-}
 #include <QMap>
 #include <QFile>
 #include <qmmp/qmmp.h>
-
-typedef struct {
-    void *input;
-    int bitrate;
-} decode_info;
+#include <libfc14/fc14audiodecoder.h>
 
 /*!
  * @author Greedysky <greedysky@163.com>
@@ -41,22 +34,23 @@ public:
     ~FC14Helper();
 
     void deinit();
-
     bool initialize();
-    qint64 totalTime() const;
-    void seek(qint64 time);
 
-    int bitrate() const;
-    int sampleRate() const;
-    int channels() const;
-    int bitsPerSample() const;
+    inline void seek(qint64 time) { fc14dec_seek(m_input, time); }
+    inline qint64 totalTime() const { return fc14dec_duration(m_input); }
+
+    inline int bitrate() const { return 8; }
+    inline int sampleRate() const { return 44100; }
+    inline int channels() const { return 2; }
+    inline int depth() const { return 16; }
 
     qint64 read(unsigned char *data, qint64 maxSize);
-    QMap<Qmmp::MetaData, QString> readMetaData() const;
+
+    inline QString comment() const { return fc14dec_format_name(m_input); }
 
 private:
     QString m_path;
-    decode_info *m_info = nullptr;
+    void *m_input = nullptr;
 
 };
 
